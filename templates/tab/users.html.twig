@@ -1,0 +1,33 @@
+{% extends 'template.html.twig' %}
+
+{% block title %}
+	Utilisateurs
+{% endblock %}
+
+{% block pageTitle %}
+	Liste des utilisateurs
+{% endblock %}
+
+{% block body %}
+	<div class="container">
+		<table class="table">
+			<thead class="table-active">
+				<tr>
+					<th scope="col">Firsname</th>
+					<th scope="col">Name</th>
+					<th scope="col">Age</th>
+				</tr>
+			</thead>
+
+			<tbody>
+				{% for user in users %}
+					<tr>
+						<td>{{user.firstname}}</td>
+						<td>{{user.name}}</td>
+						<td>{{user.age}}</td>
+					</tr>
+				{% endfor %}
+			</tbody>
+		</table>
+	</div>
+{% endblock %}

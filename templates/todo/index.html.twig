@@ -1,0 +1,19 @@
+{% extends "template.html.twig" %}
+{% block title %}
+	Todos
+{% endblock %}
+
+{% block pageTitle %}
+	Liste des todos
+{% endblock %}
+{% block body %}
+	<ol class="list-group">
+		{% for name, content in todos %}
+			<li class="list-group-item">
+				{{name}}
+				:
+				{{content}}
+			</li>
+		{% endfor %}
+	</ol>
+{% endblock %}
