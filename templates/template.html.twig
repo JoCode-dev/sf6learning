@@ -152,7 +152,7 @@
 
 						<div class="card mb-4">
 							<div class="card-body">
-								{% block body %}
+								{% block flashback %}
 									{% for message in app.session.flashBag.get('info') %}
 										<div class="alert alert-info">
 											{{message}}
@@ -170,6 +170,8 @@
 											{{message}}
 										</div>
 									{% endfor %}
+								{% endblock %}
+								{% block body %}
 									Blank page
 								{% endblock %}
 							</div>
