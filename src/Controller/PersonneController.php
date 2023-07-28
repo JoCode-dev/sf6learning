@@ -3,13 +3,19 @@
 namespace App\Controller;
 
 use App\Entity\Personne;
+use App\Form\PersonneType;
+use App\Service\MailerService;
+use App\Service\UploaderService;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\File\Exception\FileException;
 use Symfony\Component\HttpFoundation\RedirectResponse;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\String\Slugger\SluggerInterface;
 
 #[Route('personne')]
 class PersonneController extends AbstractController
@@ -59,25 +65,67 @@ class PersonneController extends AbstractController
     }
 
     #[Route('/add', name: 'personne.add')]
-    public function addPersonne(EntityManagerInterface $entityManager): Response
-    {
-        // Add personne
+    public function addPersonne(
+        EntityManagerInterface $entityManager,
+        Request $request,
+        UploaderService $upload,
+        MailerService $mailer
+    ): Response {
         $personne = new Personne();
-        $personne->setFirstname('Joel');
-        $personne->setName('Code');
-        $personne->setAge(23);
+        $form = $this->createForm(PersonneType::class, $personne);
 
-        // Prepare Transaction
-        $entityManager->persist($personne);
+        // Traitement de la reqûete
+        $form->handleRequest($request);
 
-        // Execute Query 
-        $entityManager->flush();
+        if ($form->isSubmitted() && $form->isValid()) {
+            $imageFile = $form->get('photo')->getData();
 
+            if ($imageFile) {
+                $directory = $this->getParameter('images_directory');
+                $personne->setImage($upload->uploadImage($imageFile, $directory));
+            }
+            $entityManager->persist($personne);
+            $entityManager->flush();
 
-        return $this->render('personne/detail.html.twig', [
-            'personne' => $personne
+            $mailMessage = $personne->getFirstname() . ' ' . $personne->getName() . ' a été ajouté avec succès';
+            $mailer->sendEmail(content: $mailMessage);
+            $this->addFlash('success', $personne->getName() . ' a été ajouté avec succès');
+
+            return $this->redirectToRoute('personne.list.all');
+        } else {
+        }
+
+        return $this->render('personne/add-personne.html.twig', [
+            'form' => $form->createView()
         ]);
     }
+
+    #[Route('/edit/{id?0}', name: 'personne.edit')]
+    public function editPersonne(EntityManagerInterface $entityManager, Request $request, Personne $personne = null): Response
+    {
+        if (!$personne) {
+            $personne = new Personne();
+        }
+
+        $form = $this->createForm(PersonneType::class, $personne);
+
+        // Traitement de la reqûete
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted()) {
+            $entityManager->persist($personne);
+            $entityManager->flush();
+            $this->addFlash('success', $personne->getName() . ' a été édité avec succès');
+
+            return $this->redirect('/');
+        } else {
+        }
+
+        return $this->render('personne/add-personne.html.twig', [
+            'form' => $form->createView()
+        ]);
+    }
+
 
     #[Route('/delete/{id}', name: "personne.delete")]
     public function deletePersonne(Personne $personne = null, ManagerRegistry $doctrine): RedirectResponse

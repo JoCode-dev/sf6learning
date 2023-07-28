@@ -7,6 +7,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: PersonneRepository::class)]
 class Personne
@@ -17,12 +18,15 @@ class Personne
     private ?int $id = null;
 
     #[ORM\Column(length: 50)]
+    #[Assert\NotBlank(message: 'Veuillez renseigner ce champ')]
+    #[Assert\Length(min: 4, minMessage: 'Veuillez entrer au moins 4 caractères')]
     private ?string $firstname = null;
 
     #[ORM\Column(length: 50)]
     private ?string $name = null;
 
     #[ORM\Column(type: Types::SMALLINT)]
+    #[Assert\NotBlank(message: 'Veuillez renseigner ce champ')]
     private ?int $age = null;
 
     #[ORM\OneToOne(cascade: ['persist', 'remove'])]
@@ -30,6 +34,9 @@ class Personne
 
     #[ORM\ManyToMany(targetEntity: Hobby::class, inversedBy: 'personnes')]
     private Collection $hobby;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $image = null;
 
     public function __construct()
     {
@@ -109,6 +116,18 @@ class Personne
     public function removeHobby(Hobby $hobby): static
     {
         $this->hobby->removeElement($hobby);
+
+        return $this;
+    }
+
+    public function getImage(): ?string
+    {
+        return $this->image;
+    }
+
+    public function setImage(?string $image): static
+    {
+        $this->image = $image;
 
         return $this;
     }
